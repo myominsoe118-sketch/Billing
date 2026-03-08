@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High-Speed Billing System</title>
+    <title>Billing System - Edit & Print</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; }
+        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; --danger: #ef4444; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Pyidaungsu', sans-serif; }
         body { background: var(--bg); padding: 20px; color: #1e293b; }
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        .container { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        .container { max-width: 1550px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         h2 { font-size: 1.1rem; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
 
@@ -27,23 +27,34 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
         .capitalize { text-transform: capitalize; }
         
-        #timeWrapper { display: none; } /* Cash အတွက် အမြဲ ပိတ်ထားမည် */
+        #timeWrapper { display: none; }
         .manual-time { background: #fff7ed; border: 2px solid #fb923c !important; }
 
         .btn-save { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: var(--primary); color: white; margin-top: 10px; }
+        .btn-print { background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-edit { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
+
         .sync-status { font-size: 11px; font-weight: 600; color: #64748b; margin-top: 5px; text-align: center; }
 
         .table-container { overflow-x: auto; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
         th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid var(--border); }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+
+        @media print { 
+            .aside-form, .btn-print, th:last-child, td:last-child { display: none !important; } 
+            .container { display: block; } 
+            body { padding: 0; background: white; }
+            .card { box-shadow: none; border: 1px solid #eee; }
+            .summary-card { color: black !important; background: none !important; border: 1px solid #eee; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <aside class="card">
-        <h2>Billing Entry Form 💵</h2>
+    <aside class="card aside-form">
+        <h2 id="formTitle">Billing Entry Form💵</h2>
         <form id="billingForm">
             <div class="form-group"><label>Date</label><input type="date" id="Date" required></div>
             <div class="form-group"><label>Invoice No.</label><input type="text" id="InvoiceNo" placeholder="INV-001" required></div>
@@ -57,7 +68,7 @@
                 <select id="Payment" onchange="toggleTimeField()"><option value="Cash">Cash</option><option value="Kpay">Kpay</option><option value="MMQR">MMQR</option></select>
             </div>
             <div class="form-group" id="timeWrapper">
-                <label>Manual Time (Kpay/MMQR Only)</label><input type="text" id="Time" class="manual-time" placeholder="10:30 AM">
+                <label>Manual Time</label><input type="text" id="Time" class="manual-time" placeholder="10:30 AM">
             </div>
             <div class="form-group"><label>Amount (Ks)</label><input type="number" id="Amount" required></div>
             <button type="submit" class="btn-save" id="saveBtn">Save & Sync</button>
@@ -72,11 +83,14 @@
             <div class="summary-card bg-mmqr"><h4>MMQR Total</h4><p id="tM">0 Ks</p></div>
         </div>
         <div class="card">
-            <h2>Billing Records</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <h2 style="border:none; margin:0;">Daily Billing Report</h2>
+                <button onclick="window.print()" class="btn-print">🖨️ PDF / Print</button>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>Date</th><th>Invoice No</th><th>Side Code</th><th>Customer Name</th><th>Plan</th><th>Month</th><th>Payment</th><th>Time</th><th>Amount</th></tr>
+                        <tr><th>Date</th><th>Invoice No</th><th>Side Code</th><th>Customer Name</th><th>Plan</th><th>Month</th><th>Payment</th><th>Time</th><th>Amount</th><th>Action</th></tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
@@ -88,70 +102,19 @@
 <script>
     const URL = 'https://script.google.com/macros/s/AKfycbxa6gxraGYyMgvUnfueg-X2CEJbZaJlyNXLT8uUgjXcrio6L2OS2HwKUqJ9SQa7lwL3XQ/exec';
     let total = { Kpay: 0, Cash: 0, MMQR: 0 };
+    let editRow = null;
 
     document.getElementById('Date').valueAsDate = new Date();
 
     function toggleTimeField() {
         const payment = document.getElementById('Payment').value;
         const wrapper = document.getElementById('timeWrapper');
-        const timeInput = document.getElementById('Time');
-        
-        if (payment === 'Cash') {
-            wrapper.style.display = 'none';
-            timeInput.value = ""; // Cash ဆိုရင် အချိန်ကို အမြဲ ဖျက်ထားမည်
-        } else {
-            wrapper.style.display = 'block';
-            timeInput.focus();
-        }
+        wrapper.style.display = (payment === 'Cash') ? 'none' : 'block';
     }
 
     function cap(s) { return s.replace(/\b\w/g, l => l.toUpperCase()); }
 
     document.getElementById('billingForm').onsubmit = function(e) {
         e.preventDefault();
-        const syncStatus = document.getElementById('syncStatus');
-        const paymentMethod = document.getElementById('Payment').value;
         
-        // Cash ဆိုရင် finalTime ကို empty string ပို့မည်၊ မဟုတ်ရင် ရိုက်ထားတာယူမည်
-        let finalTime = (paymentMethod === 'Cash') ? "" : document.getElementById('Time').value;
-
-        const d = {
-            Date: document.getElementById('Date').value,
-            InvoiceNo: document.getElementById('InvoiceNo').value,
-            SideCode: cap(document.getElementById('SideCode').value),
-            CustomerName: cap(document.getElementById('CustomerName').value),
-            Plan: document.getElementById('Plan').value,
-            Month: document.getElementById('Month').value,
-            Payment: paymentMethod,
-            Time: finalTime,
-            Amount: document.getElementById('Amount').value
-        };
-
-        // Table UI ထဲ ချက်ချင်းထည့်ခြင်း
-        const row = `<tr><td>${d.Date}</td><td>${d.InvoiceNo}</td><td>${d.SideCode}</td><td>${d.CustomerName}</td><td>${d.Plan}</td><td>${d.Month}</td><td>${d.Payment}</td><td>${d.Time}</td><td><b>${parseFloat(d.Amount).toLocaleString()} Ks</b></td></tr>`;
-        document.getElementById('tableBody').insertAdjacentHTML('afterbegin', row);
-        
-        total[d.Payment] += parseFloat(d.Amount);
-        document.getElementById('tK').innerText = total.Kpay.toLocaleString() + " Ks";
-        document.getElementById('tC').innerText = total.Cash.toLocaleString() + " Ks";
-        document.getElementById('tM').innerText = total.MMQR.toLocaleString() + " Ks";
-        
-        // Form Reset
-        e.target.reset();
-        document.getElementById('Date').valueAsDate = new Date();
-        toggleTimeField();
-        syncStatus.innerText = "⏳ Cloud သို့ ပို့နေသည်...";
-
-        // Background Sync
-        fetch(URL, { method: 'POST', body: new URLSearchParams(d), mode: 'no-cors' })
-        .then(() => {
-            syncStatus.innerText = "✅ သိမ်းဆည်းပြီးပါပြီ။";
-            setTimeout(() => { syncStatus.innerText = ""; }, 3000);
-        })
-        .catch(() => {
-            syncStatus.innerText = "❌ မအောင်မြင်ပါ။";
-        });
-    };
-</script>
-</body>
-</html>
+        // Edit လုပ်နေတ
