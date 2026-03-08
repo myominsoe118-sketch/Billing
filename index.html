@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billing System - Edit & Print</title>
+    <title>Billing System - Final Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; --danger: #ef4444; }
+        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Pyidaungsu', sans-serif; }
         body { background: var(--bg); padding: 20px; color: #1e293b; }
 
@@ -28,13 +28,11 @@
         .capitalize { text-transform: capitalize; }
         
         #timeWrapper { display: none; }
-        .manual-time { background: #fff7ed; border: 2px solid #fb923c !important; }
+        .manual-time { background: #fff7ed !important; border: 2px solid #fb923c !important; }
 
         .btn-save { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: var(--primary); color: white; margin-top: 10px; }
         .btn-print { background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-edit { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
-
-        .sync-status { font-size: 11px; font-weight: 600; color: #64748b; margin-top: 5px; text-align: center; }
 
         .table-container { overflow-x: auto; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
@@ -43,9 +41,7 @@
 
         @media print { 
             .aside-form, .btn-print, th:last-child, td:last-child { display: none !important; } 
-            .container { display: block; } 
-            body { padding: 0; background: white; }
-            .card { box-shadow: none; border: 1px solid #eee; }
+            .container { display: block; } body { padding: 0; background: white; }
             .summary-card { color: black !important; background: none !important; border: 1px solid #eee; }
         }
     </style>
@@ -54,7 +50,7 @@
 
 <div class="container">
     <aside class="card aside-form">
-        <h2 id="formTitle">Billing Entry Form💵</h2>
+        <h2 id="formTitle">Billing Entry 💵</h2>
         <form id="billingForm">
             <div class="form-group"><label>Date</label><input type="date" id="Date" required></div>
             <div class="form-group"><label>Invoice No.</label><input type="text" id="InvoiceNo" placeholder="INV-001" required></div>
@@ -68,11 +64,11 @@
                 <select id="Payment" onchange="toggleTimeField()"><option value="Cash">Cash</option><option value="Kpay">Kpay</option><option value="MMQR">MMQR</option></select>
             </div>
             <div class="form-group" id="timeWrapper">
-                <label>Manual Time</label><input type="text" id="Time" class="manual-time" placeholder="10:30 AM">
+                <label>Manual Time (Fill Here)</label>
+                <input type="text" id="Time" placeholder="e.g. 10:45 AM">
             </div>
             <div class="form-group"><label>Amount (Ks)</label><input type="number" id="Amount" required></div>
             <button type="submit" class="btn-save" id="saveBtn">Save & Sync</button>
-            <div id="syncStatus" class="sync-status"></div>
         </form>
     </aside>
 
@@ -109,12 +105,19 @@
     function toggleTimeField() {
         const payment = document.getElementById('Payment').value;
         const wrapper = document.getElementById('timeWrapper');
-        wrapper.style.display = (payment === 'Cash') ? 'none' : 'block';
+        const timeInput = document.getElementById('Time');
+        
+        if (payment === 'Cash') {
+            wrapper.style.display = 'none';
+            timeInput.value = "";
+        } else {
+            wrapper.style.display = 'block';
+            timeInput.classList.add('manual-time');
+            // Edit လုပ်နေတာ မဟုတ်ရင် focus ပေးမယ်
+            if(!editRow) timeInput.focus(); 
+        }
     }
 
     function cap(s) { return s.replace(/\b\w/g, l => l.toUpperCase()); }
 
-    document.getElementById('billingForm').onsubmit = function(e) {
-        e.preventDefault();
-        
-        // Edit လုပ်နေတ
+    document.getElementById('billingForm').onsu
