@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Billing System 🧾</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Billing Data Entry 🧾</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --dark: #1e293b;
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --primary: #4f46e5;
+            --cash-color: #10b981;
+            --kpay-color: #0ea5e9;
+            --mmqr-color: #8b5cf6;
+            --text-dark: #1e293b;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
+            font-family: 'Inter', 'Pyidaungsu', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* လှပသော နောက်ခံ Gradient */
             background-attachment: fixed;
             margin: 0;
             padding: 20px;
-            color: var(--dark);
+            color: var(--text-dark);
         }
 
         .container { max-width: 1200px; margin: auto; }
@@ -29,102 +27,85 @@
         /* Dashboard Summary */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            border-bottom: 4px solid var(--primary);
-            transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 5px solid var(--primary);
         }
 
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-card h4 { margin: 0; font-size: 0.85rem; color: #64748b; text-transform: uppercase; }
-        .stat-card div { font-size: 1.4rem; font-weight: 600; margin-top: 8px; }
+        .stat-card h4 { margin: 0; font-size: 0.9rem; color: #64748b; }
+        .stat-card .amt { font-size: 1.5rem; font-weight: 700; margin-top: 10px; }
 
-        /* Layout Grid */
+        /* Main Content Grid */
         .main-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 25px;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
         }
 
-        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
 
-        /* Form & Table Section */
+        /* Glassmorphism Panel */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        label { font-weight: 600; font-size: 13px; margin-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: 600; font-size: 13px; display: block; margin-bottom: 5px; }
         input, select, textarea {
-            padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; 
+            box-sizing: border-box; font-size: 14px;
         }
 
         .btn {
-            padding: 12px; border: none; border-radius: 8px; cursor: pointer;
-            font-weight: 600; transition: 0.2s;
+            width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; margin-top: 10px; transition: 0.3s;
         }
-        .btn-save { background: var(--primary); color: white; width: 100%; }
-        .btn-print { background: var(--dark); color: white; margin-bottom: 15px; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-print { background: #334155; color: white; margin-bottom: 15px; width: auto; padding: 10px 20px; }
 
-        /* Side Code Formatting */
-        .sc-preview { color: var(--primary); font-weight: bold; font-size: 12px; margin-top: 4px; }
-
-        /* Table Styling */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; font-size: 13px; }
-        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #edf2f7; }
-        td { padding: 12px; border-bottom: 1px solid #edf2f7; }
-
-        /* Print Mode */
-        @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-        }
+        /* Table */
+        .table-container { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; border-radius: 10px; overflow: hidden; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
 
         /* Modal */
         .modal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 25px; border-radius: 15px; z-index: 1000; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            background: white; padding: 25px; border-radius: 15px; z-index: 1000; width: 280px;
         }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .glass-panel { box-shadow: none; border: 1px solid #eee; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align:center; color: var(--dark);">Billing Data Entry 🧾</h2>
+    <h2 style="text-align:center; color: white; margin-bottom: 30px;">Billing Data Entry 🧾</h2>
 
     <div class="dashboard">
-        <div class="stat-card" style="border-color: var(--primary);">
-            <h4>Total Net Amount</h4>
-            <div id="totalAll">0 Ks</div>
-        </div>
-        <div class="stat-card" style="border-color: #22c55e;">
-            <h4>Cash Total</h4>
-            <div id="totalCash">0 Ks</div>
-        </div>
-        <div class="stat-card" style="border-color: #06b6d4;">
-            <h4>Kpay Total</h4>
-            <div id="totalKpay">0 Ks</div>
-        </div>
-        <div class="stat-card" style="border-color: #8b5cf6;">
-            <h4>MMQR Total</h4>
-            <div id="totalMMQR">0 Ks</div>
-        </div>
+        <div class="stat-card"><h4>Total Amount</h4><div class="amt" id="totalAll">0 Ks</div></div>
+        <div class="stat-card" style="border-top-color: var(--cash-color);"><h4>Cash Total</h4><div class="amt" id="totalCash" style="color:var(--cash-color)">0 Ks</div></div>
+        <div class="stat-card" style="border-top-color: var(--kpay-color);"><h4>Kpay Total</h4><div class="amt" id="totalKpay" style="color:var(--kpay-color)">0 Ks</div></div>
+        <div class="stat-card" style="border-top-color: var(--mmqr-color);"><h4>MMQR Total</h4><div class="amt" id="totalMMQR" style="color:var(--mmqr-color)">0 Ks</div></div>
     </div>
 
     <div class="main-grid">
@@ -135,9 +116,13 @@
                     <input type="date" id="date" required>
                 </div>
                 <div class="form-group">
+                    <label>Invoice No</label>
+                    <input type="text" id="invoiceNo" placeholder="INV-001" required>
+                </div>
+                <div class="form-group">
                     <label>Side Code (Numbers Only)</label>
-                    <input type="text" id="sideCode" placeholder="005" oninput="document.getElementById('scv').innerText = 'HTN-BL-' + this.value">
-                    <div class="sc-preview" id="scv">HTN-BL-</div>
+                    <input type="text" id="sideCode" placeholder="01" oninput="document.getElementById('scv').innerText = 'HTN-BL-' + this.value">
+                    <div id="scv" style="font-weight:bold; color:var(--primary); font-size:12px; margin-top:5px;">HTN-BL-</div>
                 </div>
                 <div class="form-group">
                     <label>Customer Name</label>
@@ -166,17 +151,21 @@
                     <input type="time" id="time">
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
+                    <label>Amount (Ks)</label>
                     <input type="number" id="amount" required>
                 </div>
-                <button type="button" class="btn" style="background:#475569; color:white; margin-bottom:10px;" onclick="openCashModal()">💰 Cash Breakdown</button>
+                <div class="form-group">
+                    <label>Remark</label>
+                    <textarea id="remark" rows="1"></textarea>
+                </div>
+                <button type="button" class="btn" style="background:#64748b; color:white;" onclick="document.getElementById('cm').style.display='block'; document.getElementById('ov').style.display='block';">💰 Cash Counter</button>
                 <button type="submit" class="btn btn-save">Save Transaction</button>
             </form>
         </div>
 
         <div class="glass-panel" id="printArea">
             <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin-top:0">Transaction History</h3>
+                <h3 style="margin:0">Recent Transactions</h3>
                 <button class="btn btn-print no-print" onclick="window.print()">🖨️ Print PDF</button>
             </div>
             <div class="table-container">
@@ -184,78 +173,70 @@
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>Inv No</th>
                             <th>Side Code</th>
                             <th>Customer</th>
-                            <th>Plan</th>
+                            <th>Month</th>
                             <th>Method</th>
                             <th>Amount</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<div class="overlay" id="overlay"></div>
-<div class="modal" id="cashModal">
-    <h3>Cash Note Counter</h3>
-    <div id="cashInputs">
-        <div style="display:flex; gap:10px; margin-bottom:10px;"><span>10000:</span> <input type="number" class="note" data-val="10000" style="width:60px"></div>
-        <div style="display:flex; gap:10px; margin-bottom:10px;"><span>5000:</span> <input type="number" class="note" data-val="5000" style="width:60px"></div>
-        <div style="display:flex; gap:10px; margin-bottom:10px;"><span>1000:</span> <input type="number" class="note" data-val="1000" style="width:60px"></div>
+<div class="overlay" id="ov" onclick="this.style.display='none'; document.getElementById('cm').style.display='none';"></div>
+<div class="modal" id="cm">
+    <h4 style="margin-top:0">Cash Calculator</h4>
+    <div id="notes">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>10000:</span> <input type="number" class="nt" data-v="10000" style="width:80px"></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>5000:</span> <input type="number" class="nt" data-v="5000" style="width:80px"></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>1000:</span> <input type="number" class="nt" data-v="1000" style="width:80px"></div>
     </div>
-    <button class="btn btn-save" onclick="closeCashModal()">Done</button>
+    <button class="btn btn-save" onclick="document.getElementById('cm').style.display='none'; document.getElementById('ov').style.display='none';">Done</button>
 </div>
 
 <script>
-    let stats = { Cash: 0, Kpay: 0, MMQR: 0, Total: 0 };
-
+    let totals = { Cash: 0, Kpay: 0, MMQR: 0, Grand: 0 };
     document.getElementById('date').valueAsDate = new Date();
 
     document.getElementById('billingForm').onsubmit = function(e) {
         e.preventDefault();
         const amt = parseInt(document.getElementById('amount').value);
-        const method = document.getElementById('method').value;
-        const sideCode = "HTN-BL-" + document.getElementById('sideCode').value;
+        const meth = document.getElementById('method').value;
+        const side = "HTN-BL-" + document.getElementById('sideCode').value;
+        const inv = document.getElementById('invoiceNo').value;
+        const mon = document.getElementById('month').value;
+        const time = document.getElementById('time').value;
 
-        // Update Stats
-        stats[method] += amt;
-        stats.Total += amt;
-        updateDashboard();
+        // Update Dashboard
+        totals[meth] += amt;
+        totals.Grand += amt;
+        document.getElementById('totalAll').innerText = totals.Grand.toLocaleString() + " Ks";
+        document.getElementById('totalCash').innerText = totals.Cash.toLocaleString() + " Ks";
+        document.getElementById('totalKpay').innerText = totals.Kpay.toLocaleString() + " Ks";
+        document.getElementById('totalMMQR').innerText = totals.MMQR.toLocaleString() + " Ks";
 
-        // Add to Table
+        // Add Row
         const row = `<tr>
             <td>${document.getElementById('date').value}</td>
-            <td>${sideCode}</td>
+            <td>${inv}</td>
+            <td>${side}</td>
             <td>${document.getElementById('customer').value}</td>
-            <td>${document.getElementById('plan').value}</td>
-            <td>${method} ${document.getElementById('time').value}</td>
+            <td>${mon}</td>
+            <td>${meth} ${time}</td>
             <td>${amt.toLocaleString()} Ks</td>
         </tr>`;
         document.getElementById('tableBody').innerHTML += row;
 
         this.reset();
         document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('scv').innerText = "HTN-BL-";
+        document.getElementById('tBox').style.display = 'none';
     };
-
-    function updateDashboard() {
-        document.getElementById('totalAll').innerText = stats.Total.toLocaleString() + " Ks";
-        document.getElementById('totalCash').innerText = stats.Cash.toLocaleString() + " Ks";
-        document.getElementById('totalKpay').innerText = stats.Kpay.toLocaleString() + " Ks";
-        document.getElementById('totalMMQR').innerText = stats.MMQR.toLocaleString() + " Ks";
-    }
-
-    function openCashModal() { 
-        document.getElementById('cashModal').style.display='block'; 
-        document.getElementById('overlay').style.display='block'; 
-    }
-    function closeCashModal() { 
-        document.getElementById('cashModal').style.display='none'; 
-        document.getElementById('overlay').style.display='none'; 
-    }
 </script>
 
 </body>
