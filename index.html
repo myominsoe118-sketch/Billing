@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billing System - Final Master</title>
+    <title>Billing System - Master V3</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; }
+        :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --bg: #f8fafc; --border: #e2e8f0; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Pyidaungsu', sans-serif; }
         body { background: var(--bg); padding: 20px; color: #1e293b; }
 
@@ -31,9 +31,11 @@
         .manual-time { background: #fff7ed !important; border: 2px solid #fb923c !important; }
 
         .btn-save { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: var(--primary); color: white; margin-top: 10px; }
-        .btn-print { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .btn-print:hover { background: #1e293b; }
-        .btn-edit { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
+        .btn-print { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        
+        .action-btns { display: flex; gap: 5px; }
+        .btn-edit { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
+        .btn-del { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
 
         .table-container { overflow-x: auto; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
@@ -53,7 +55,7 @@
 
 <div class="container">
     <aside class="card aside-form">
-        <h2 id="formTitle">Billing Entry Form 💵</h2>
+        <h2 id="formTitle">Billing Entry 💵</h2>
         <form id="billingForm">
             <div class="form-group"><label>Date</label><input type="date" id="Date" required></div>
             <div class="form-group"><label>Invoice No.</label><input type="text" id="InvoiceNo" placeholder="INV-001" required></div>
@@ -67,8 +69,8 @@
                 <select id="Payment" onchange="toggleTimeField()"><option value="Cash">Cash</option><option value="Kpay">Kpay</option><option value="MMQR">MMQR</option></select>
             </div>
             <div class="form-group" id="timeWrapper">
-                <label>Manual Time (HH:MM AM/PM)</label>
-                <input type="text" id="Time" placeholder="e.g. 02:30 PM">
+                <label>Manual Time (Kpay/MMQR)</label>
+                <input type="text" id="Time" placeholder="e.g. 01:20 PM">
             </div>
             <div class="form-group"><label>Amount (Ks)</label><input type="number" id="Amount" required></div>
             <button type="submit" class="btn-save" id="saveBtn">Save & Sync</button>
@@ -85,9 +87,7 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
                 <h2 style="border:none; margin:0;">Daily Billing Report</h2>
-                <button onclick="window.print()" class="btn-print">
-                    <span>🖨️</span> PDF / Print
-                </button>
+                <button onclick="window.print()" class="btn-print">🖨️ PDF / Print</button>
             </div>
             <div class="table-container">
                 <table>
@@ -109,70 +109,93 @@
     document.getElementById('Date').valueAsDate = new Date();
 
     function toggleTimeField() {
-        const payment = document.getElementById('Payment').value;
-        const wrapper = document.getElementById('timeWrapper');
-        const timeInput = document.getElementById('Time');
-        
-        if (payment === 'Cash') {
-            wrapper.style.display = 'none';
-            timeInput.value = "";
-        } else {
-            wrapper.style.display = 'block';
-            timeInput.classList.add('manual-time');
-            if(!editRow) timeInput.focus();
-        }
+        const p = document.getElementById('Payment').value;
+        const w = document.getElementById('timeWrapper');
+        const t = document.getElementById('Time');
+        w.style.display = (p === 'Cash') ? 'none' : 'block';
+        if(p !== 'Cash' && !editRow) t.focus();
     }
 
     function cap(s) { return s.replace(/\b\w/g, l => l.toUpperCase()); }
 
+    // Invoice No တူမတူ စစ်ဆေးသည့် Function
+    function isDuplicate(invoice, date) {
+        const rows = document.querySelectorAll('#tableBody tr');
+        for (let row of rows) {
+            const rowDate = row.cells[0].innerText;
+            const rowInvoice = row.cells[1].innerText;
+            // Edit လုပ်နေတဲ့ Row ကိုတော့ ချန်လှပ်ရမယ်
+            if (editRow && row === editRow) continue; 
+            if (rowInvoice === invoice && rowDate === date) return true;
+        }
+        return false;
+    }
+
     document.getElementById('billingForm').onsubmit = function(e) {
         e.preventDefault();
         
-        // Remove old row if editing
+        const dateVal = document.getElementById('Date').value;
+        const invoiceVal = document.getElementById('InvoiceNo').value;
+
+        // Duplicate Check
+        if (isDuplicate(invoiceVal, dateVal)) {
+            alert("⚠️ ဤ Invoice No. သည် ယနေ့အတွက် သွင်းပြီးသားဖြစ်နေပါသည်။");
+            return;
+        }
+
         if(editRow) {
-            const oldAmt = parseFloat(editRow.cells[8].innerText.replace(/,/g, ''));
-            const oldPay = editRow.cells[6].innerText;
-            total[oldPay] -= oldAmt;
-            editRow.remove();
+            removeRowData(editRow);
             editRow = null;
             document.getElementById('formTitle').innerText = "Billing Entry 💵";
         }
 
-        const paymentMethod = document.getElementById('Payment').value;
+        const pMethod = document.getElementById('Payment').value;
         const d = {
-            Date: document.getElementById('Date').value,
-            InvoiceNo: document.getElementById('InvoiceNo').value,
+            Date: dateVal,
+            InvoiceNo: invoiceVal,
             SideCode: cap(document.getElementById('SideCode').value),
             CustomerName: cap(document.getElementById('CustomerName').value),
             Plan: document.getElementById('Plan').value,
             Month: document.getElementById('Month').value,
-            Payment: paymentMethod,
-            Time: (paymentMethod === 'Cash') ? "" : document.getElementById('Time').value,
+            Payment: pMethod,
+            Time: (pMethod === 'Cash') ? "" : document.getElementById('Time').value,
             Amount: document.getElementById('Amount').value
         };
 
-        // UI Update
         const row = `<tr>
             <td>${d.Date}</td><td>${d.InvoiceNo}</td><td>${d.SideCode}</td><td>${d.CustomerName}</td><td>${d.Plan}</td><td>${d.Month}</td><td>${d.Payment}</td><td>${d.Time}</td><td>${parseFloat(d.Amount).toLocaleString()}</td>
-            <td><button class="btn-edit" onclick="editData(this)">Edit</button></td>
+            <td><div class="action-btns">
+                <button class="btn-edit" onclick="editData(this)">Edit</button>
+                <button class="btn-del" onclick="deleteRow(this)">Del</button>
+            </div></td>
         </tr>`;
         document.getElementById('tableBody').insertAdjacentHTML('afterbegin', row);
         
-        // Totals Update
         total[d.Payment] += parseFloat(d.Amount);
         updateDashboard();
         
-        // Reset
         e.target.reset();
         document.getElementById('Date').valueAsDate = new Date();
         toggleTimeField();
-
-        // Sync Background
         fetch(URL, { method: 'POST', body: new URLSearchParams(d), mode: 'no-cors' });
     };
 
+    function removeRowData(row) {
+        const amt = parseFloat(row.cells[8].innerText.replace(/,/g, ''));
+        const pay = row.cells[6].innerText;
+        total[pay] -= amt;
+        updateDashboard();
+        row.remove();
+    }
+
+    function deleteRow(btn) {
+        if(confirm("ဤစာရင်းကို ဖျက်ရန် သေချာပါသလား?")) {
+            removeRowData(btn.parentElement.parentElement.parentElement);
+        }
+    }
+
     function editData(btn) {
-        editRow = btn.parentElement.parentElement;
+        editRow = btn.parentElement.parentElement.parentElement;
         document.getElementById('Date').value = editRow.cells[0].innerText;
         document.getElementById('InvoiceNo').value = editRow.cells[1].innerText;
         document.getElementById('SideCode').value = editRow.cells[2].innerText;
@@ -180,15 +203,11 @@
         document.getElementById('Plan').value = editRow.cells[4].innerText;
         document.getElementById('Month').value = editRow.cells[5].innerText;
         document.getElementById('Payment').value = editRow.cells[6].innerText;
-        
         toggleTimeField();
-        if(editRow.cells[6].innerText !== 'Cash') {
-            document.getElementById('Time').value = editRow.cells[7].innerText;
-        }
-
+        if(editRow.cells[6].innerText !== 'Cash') document.getElementById('Time').value = editRow.cells[7].innerText;
         document.getElementById('Amount').value = editRow.cells[8].innerText.replace(/,/g, '');
         document.getElementById('formTitle').innerText = "Update Entry ✏️";
-        window.scrollTo(0, 0);
+        window.scrollTo(0,0);
     }
 
     function updateDashboard() {
