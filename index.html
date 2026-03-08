@@ -3,76 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billing System - Auto Sync</title>
+    <title>Billing System - Final Master</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #2563eb; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Pyidaungsu', sans-serif; }
         body { background: var(--bg); padding: 20px; color: #1e293b; }
 
-        /* Remove Spinners (Arrows) */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        .container { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        .container { max-width: 1550px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         h2 { font-size: 1.1rem; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
 
-        /* Dashboard */
         .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .summary-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
         .bg-kpay { background: #0066ff; } .bg-cash { background: var(--success); } .bg-mmqr { background: var(--warning); }
         .summary-card p { font-size: 18px; font-weight: 700; }
 
-        /* Form */
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #64748b; }
         input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
         .capitalize { text-transform: capitalize; }
         
-        /* Time Field Animation */
-        #timeWrapper { display: none; } /* Default hidden for Cash */
-        .manual-time { background: #fff7ed; border: 2px solid #fb923c !important; }
+        #timeWrapper { display: none; }
+        .manual-time { background: #fff7ed !important; border: 2px solid #fb923c !important; }
 
         .btn-save { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: var(--primary); color: white; margin-top: 10px; }
-        .btn-save:disabled { background: #94a3b8; }
+        .btn-print { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .btn-print:hover { background: #1e293b; }
+        .btn-edit { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; }
 
-        /* Table */
         .table-container { overflow-x: auto; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
         th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid var(--border); }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
 
-        @media print { .aside-form, button { display: none !important; } .container { display: block; } .summary-card { color: black !important; background: none !important; border: 1px solid #eee; } }
+        @media print { 
+            .aside-form, .btn-print, th:last-child, td:last-child { display: none !important; } 
+            .container { display: block; } body { padding: 0; background: white; }
+            .card { box-shadow: none; border: 1px solid #eee; }
+            .summary-card { color: black !important; background: none !important; border: 1px solid #eee; }
+            .summary-card p { color: black !important; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <aside class="card aside-form">
-        <h2>Billing Entry 💵</h2>
+        <h2 id="formTitle">Billing Entry Form 💵</h2>
         <form id="billingForm">
             <div class="form-group"><label>Date</label><input type="date" id="Date" required></div>
             <div class="form-group"><label>Invoice No.</label><input type="text" id="InvoiceNo" placeholder="INV-001" required></div>
             <div class="form-group"><label>Side Code</label><input type="text" id="SideCode" class="capitalize" required></div>
             <div class="form-group"><label>Customer Name</label><input type="text" id="CustomerName" class="capitalize" required></div>
             <div class="form-group"><label>Plan</label>
-                <select id="Plan">
-                    <option>15Mbps</option><option>25Mbps</option><option>35Mbps</option><option>50Mbps</option><option>100Mbps</option>
-                </select>
+                <select id="Plan"><option>15Mbps</option><option>25Mbps</option><option>35Mbps</option><option>50Mbps</option><option>100Mbps</option></select>
             </div>
             <div class="form-group"><label>Month</label><input type="number" id="Month" value="1" required></div>
             <div class="form-group"><label>Payment</label>
-                <select id="Payment" onchange="toggleTimeField()">
-                    <option value="Cash">Cash</option>
-                    <option value="Kpay">Kpay</option>
-                    <option value="MMQR">MMQR</option>
-                </select>
+                <select id="Payment" onchange="toggleTimeField()"><option value="Cash">Cash</option><option value="Kpay">Kpay</option><option value="MMQR">MMQR</option></select>
             </div>
             <div class="form-group" id="timeWrapper">
                 <label>Manual Time (HH:MM AM/PM)</label>
-                <input type="text" id="Time" class="manual-time" placeholder="10:30 AM">
+                <input type="text" id="Time" placeholder="e.g. 02:30 PM">
             </div>
             <div class="form-group"><label>Amount (Ks)</label><input type="number" id="Amount" required></div>
             <button type="submit" class="btn-save" id="saveBtn">Save & Sync</button>
@@ -85,12 +81,18 @@
             <div class="summary-card bg-cash"><h4>Cash Total</h4><p id="tC">0 Ks</p></div>
             <div class="summary-card bg-mmqr"><h4>MMQR Total</h4><p id="tM">0 Ks</p></div>
         </div>
+
         <div class="card">
-            <h2>Billing Records</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h2 style="border:none; margin:0;">Daily Billing Report</h2>
+                <button onclick="window.print()" class="btn-print">
+                    <span>🖨️</span> PDF / Print
+                </button>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>Date</th><th>Invoice No</th><th>Side Code</th><th>Customer Name</th><th>Plan</th><th>Month</th><th>Payment</th><th>Time</th><th>Amount</th></tr>
+                        <tr><th>Date</th><th>Invoice No</th><th>Side Code</th><th>Customer Name</th><th>Plan</th><th>Month</th><th>Payment</th><th>Time</th><th>Amount</th><th>Action</th></tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
@@ -102,6 +104,7 @@
 <script>
     const URL = 'https://script.google.com/macros/s/AKfycbxa6gxraGYyMgvUnfueg-X2CEJbZaJlyNXLT8uUgjXcrio6L2OS2HwKUqJ9SQa7lwL3XQ/exec';
     let total = { Kpay: 0, Cash: 0, MMQR: 0 };
+    let editRow = null;
 
     document.getElementById('Date').valueAsDate = new Date();
 
@@ -112,10 +115,11 @@
         
         if (payment === 'Cash') {
             wrapper.style.display = 'none';
-            timeInput.value = ""; 
+            timeInput.value = "";
         } else {
             wrapper.style.display = 'block';
-            timeInput.focus();
+            timeInput.classList.add('manual-time');
+            if(!editRow) timeInput.focus();
         }
     }
 
@@ -123,16 +127,18 @@
 
     document.getElementById('billingForm').onsubmit = function(e) {
         e.preventDefault();
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true;
-        btn.innerText = "Syncing...";
-
-        // Logic: If Cash, use current time. If Kpay/MMQR, use manual time.
-        let finalTime = document.getElementById('Time').value;
-        if (!finalTime) {
-            finalTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Remove old row if editing
+        if(editRow) {
+            const oldAmt = parseFloat(editRow.cells[8].innerText.replace(/,/g, ''));
+            const oldPay = editRow.cells[6].innerText;
+            total[oldPay] -= oldAmt;
+            editRow.remove();
+            editRow = null;
+            document.getElementById('formTitle').innerText = "Billing Entry 💵";
         }
 
+        const paymentMethod = document.getElementById('Payment').value;
         const d = {
             Date: document.getElementById('Date').value,
             InvoiceNo: document.getElementById('InvoiceNo').value,
@@ -140,30 +146,56 @@
             CustomerName: cap(document.getElementById('CustomerName').value),
             Plan: document.getElementById('Plan').value,
             Month: document.getElementById('Month').value,
-            Payment: document.getElementById('Payment').value,
-            Time: finalTime,
+            Payment: paymentMethod,
+            Time: (paymentMethod === 'Cash') ? "" : document.getElementById('Time').value,
             Amount: document.getElementById('Amount').value
         };
 
-        fetch(URL, { method: 'POST', body: new URLSearchParams(d), mode: 'no-cors' })
-        .then(() => {
-            const row = `<tr><td>${d.Date}</td><td>${d.InvoiceNo}</td><td>${d.SideCode}</td><td>${d.CustomerName}</td><td>${d.Plan}</td><td>${d.Month}</td><td>${d.Payment}</td><td>${d.Time}</td><td><b>${parseFloat(d.Amount).toLocaleString()} Ks</b></td></tr>`;
-            document.getElementById('tableBody').insertAdjacentHTML('afterbegin', row);
-            
-            total[d.Payment] += parseFloat(d.Amount);
-            document.getElementById('tK').innerText = total.Kpay.toLocaleString() + " Ks";
-            document.getElementById('tC').innerText = total.Cash.toLocaleString() + " Ks";
-            document.getElementById('tM').innerText = total.MMQR.toLocaleString() + " Ks";
-            
-            e.target.reset();
-            document.getElementById('Date').valueAsDate = new Date();
-            toggleTimeField();
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerText = "Save & Sync";
-        });
+        // UI Update
+        const row = `<tr>
+            <td>${d.Date}</td><td>${d.InvoiceNo}</td><td>${d.SideCode}</td><td>${d.CustomerName}</td><td>${d.Plan}</td><td>${d.Month}</td><td>${d.Payment}</td><td>${d.Time}</td><td>${parseFloat(d.Amount).toLocaleString()}</td>
+            <td><button class="btn-edit" onclick="editData(this)">Edit</button></td>
+        </tr>`;
+        document.getElementById('tableBody').insertAdjacentHTML('afterbegin', row);
+        
+        // Totals Update
+        total[d.Payment] += parseFloat(d.Amount);
+        updateDashboard();
+        
+        // Reset
+        e.target.reset();
+        document.getElementById('Date').valueAsDate = new Date();
+        toggleTimeField();
+
+        // Sync Background
+        fetch(URL, { method: 'POST', body: new URLSearchParams(d), mode: 'no-cors' });
     };
+
+    function editData(btn) {
+        editRow = btn.parentElement.parentElement;
+        document.getElementById('Date').value = editRow.cells[0].innerText;
+        document.getElementById('InvoiceNo').value = editRow.cells[1].innerText;
+        document.getElementById('SideCode').value = editRow.cells[2].innerText;
+        document.getElementById('CustomerName').value = editRow.cells[3].innerText;
+        document.getElementById('Plan').value = editRow.cells[4].innerText;
+        document.getElementById('Month').value = editRow.cells[5].innerText;
+        document.getElementById('Payment').value = editRow.cells[6].innerText;
+        
+        toggleTimeField();
+        if(editRow.cells[6].innerText !== 'Cash') {
+            document.getElementById('Time').value = editRow.cells[7].innerText;
+        }
+
+        document.getElementById('Amount').value = editRow.cells[8].innerText.replace(/,/g, '');
+        document.getElementById('formTitle').innerText = "Update Entry ✏️";
+        window.scrollTo(0, 0);
+    }
+
+    function updateDashboard() {
+        document.getElementById('tK').innerText = total.Kpay.toLocaleString() + " Ks";
+        document.getElementById('tC').innerText = total.Cash.toLocaleString() + " Ks";
+        document.getElementById('tM').innerText = total.MMQR.toLocaleString() + " Ks";
+    }
 </script>
 </body>
 </html>
