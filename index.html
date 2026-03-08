@@ -50,7 +50,6 @@
         td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
-        /* Print Settings Updated */
         @media print { 
             .no-print, .sticky-side, .btn-edit, .btn-del, th:last-child, td:last-child { display: none !important; } 
             body { background: white; padding: 0; } 
@@ -83,7 +82,7 @@
                 <form id="billingForm">
                     <input type="hidden" id="editIndex" value="-1">
                     <div class="form-group"><label>Entry Date</label><input type="date" id="date" required></div>
-                    <div class="form-group"><label>Invoice No</label><input type="text" id="invoiceNo" required></div>
+                    <div class="form-group"><label>Invoice No</label><input type="text" id="invoiceNo" placeholder="နံပါတ်တူရင် လက်မခံပါ" required></div>
                     <div class="form-group"><label>Side Code</label><input type="number" id="sideCode" oninput="document.getElementById('scv').innerText='HTN-BL-'+this.value"><div class="sc-badge" id="scv">HTN-BL-</div></div>
                     <div class="form-group"><label>Customer Name</label><input type="text" id="customer" required></div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -160,10 +159,22 @@
         e.preventDefault();
         const b = document.getElementById('sBtn');
         const editIdx = parseInt(document.getElementById('editIndex').value);
+        const inputInv = document.getElementById('invoiceNo').value.trim();
+
+        // ** Invoice Duplicate Check **
+        // Edit Mode မဟုတ်ရင် ဒါမှမဟုတ် Edit Mode မှာ Invoice နံပါတ် အသစ်ပြောင်းလိုက်ရင် စစ်မယ်
+        const isDuplicate = recordList.some((rec, index) => {
+            return rec.invoice === inputInv && index !== editIdx;
+        });
+
+        if (isDuplicate) {
+            alert("⚠️ Invoice No: [" + inputInv + "] က ရှိပြီးသားမို့ ထည့်လို့မရပါဘူး။ ကျေးဇူးပြု၍ နံပါတ်ပြန်စစ်ပေးပါ။");
+            return;
+        }
 
         const d = {
             date: document.getElementById('date').value,
-            invoice: document.getElementById('invoiceNo').value,
+            invoice: inputInv,
             side: "HTN-BL-" + document.getElementById('sideCode').value,
             sidePure: document.getElementById('sideCode').value,
             customer: document.getElementById('customer').value,
